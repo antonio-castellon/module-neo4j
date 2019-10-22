@@ -1,3 +1,3 @@
-##neo4j
+# neo4j
 
-Neo4j persistence interface
+module Neo4j for nodejs
