@@ -1,0 +1,29 @@
+{
+  "name": "@acastellon/neo4j",
+  "version": "1.0.0",
+  "description": "Neo4j persistence interface",
+  "main": "neo4.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antonio-castellon/module-neo4j.git"
+  },
+  "keywords": [
+    "neo4j",
+    "utils",
+    "database",
+    "nosql"
+  ],
+  "dependencies": {
+    "neo4j-driver": "^1.7.6"
+    ,"stream" : "^0.0.2"
+  },
+  "author": "Antonio Castellon",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/antonio-castellon/module-neo4j/issues"
+  },
+  "homepage": "https://github.com/antonio-castellon/module-neo4j#readme"
+}
