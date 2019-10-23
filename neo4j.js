@@ -2,6 +2,8 @@
 // Castellon.CH (c)
 // Author: Antonio Castellon - antonio@castellon.ch
 //
+// based in Driver 1.7.x from Neo4j-driver JS official
+//
 // config parameter:
 //
 // module.exports = {
@@ -38,14 +40,23 @@ module.exports = function(config) {
 
     model.getConnection = getConnection;
 
-
     model.execute = execute;
     model.executeAsPromise = executeAsPromise;
     model.executeAsStream = executeAsStream;
-    //model.rxexecute = rxexecute; // Reactive Session v4.0
     model.executeBatch = executeBatch;
 
 
+    const neo4jIntsToStrings = (json) => {
+        const pluckAndModify = (isMatch, transformValue) =>
+            Object.entries(json)
+                .filter(isMatch)
+                .reduce((acc, [key, value]) => ({ ...acc, [key]: transformValue(value) }), {});
+        return Object.assign(
+            json,
+            pluckAndModify(([, value]) => typeof value === 'object', neo4jIntsToStrings),
+            pluckAndModify(([, value]) => neo4j.isInt(value), value => value.toString()),
+        );
+    };
 
     //
     //  FUNCTION BODY
@@ -78,7 +89,8 @@ module.exports = function(config) {
 
                     let toReturn = [];
                     result.records.forEach(v => {
-                        toReturn.push(v._fields);
+                        toReturn.push(neo4jIntsToStrings(v._fields));
+                        //toReturn.push(v._fields);
                     });
 
                     resolve(toReturn);
@@ -112,6 +124,7 @@ module.exports = function(config) {
         return new Promise((resolve, reject) => {
 
             session.run(cypher, parameters)
+                .then(neo4jIntsToStrings)
                 .then( result => {
                     resolve(result.records);
                 })
@@ -147,7 +160,7 @@ module.exports = function(config) {
                     .subscribe({
                         onNext: function(record) {
                             //console.log(record);
-                            readableStream.push(JSON.stringify(record));
+                            readableStream.push(JSON.stringify(neo4jIntsToStrings(record)));
                         },
                         onCompleted: function() {
                             if (options == null || options.close) session.close();
