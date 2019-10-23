@@ -10,10 +10,10 @@ const cypherSentence = 'MATCH (s:Substance)-[r:IS_A]-(c) RETURN s,r,c LIMIT 3';
 
 async function main() {
 
-  //  await testExecutionAsPromise();
- //   await testExecutionAsPromise_RAW();
-//    await testExecutionSharingConnection();
-//    await testExecuteAsStream();
+    await testExecutionAsPromise();
+    await testExecutionAsPromise_RAW();
+    await testExecutionSharingConnection();
+    await testExecuteAsStream();
 
     await testBatch();
 
