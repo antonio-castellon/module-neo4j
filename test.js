@@ -3,8 +3,8 @@
 //
 const config = require('./config.neo4j.template.js');
 
-//const db = require('@acastellon/neo4j')(config);
-const db = require('.//neo4j.js')(config);
+const db = require('@acastellon/neo4j')(config);
+//const db = require('./neo4j.js')(config);
 
 const cypherSentence = 'MATCH (s:Substance)-[r:IS_A]-(c) RETURN s,r,c LIMIT 3';
 
