@@ -73,10 +73,10 @@ module.exports = function(config) {
     }
 
     /**
-     * Executing ans returning an un-mutable results.
+     * Executing and returning an un-mutable results.
      * @param cypher - String with the cypher sentence to be executed
      * @param parameters - JSON object with the parameters to be used in substitution with the Cypher Sentence
-     * @param options - optinal JSON object that contains 'conn' the driver connection, 'session' driver session, 'close' if both need to be closed at the end of the execution
+     * @param options - optional JSON object that contains 'conn' the driver connection, 'session' driver session, 'close' if both need to be closed at the end of the execution
      * @return an object or List of Objects of the fields
      */
     function execute(cypher, parameters, options){
