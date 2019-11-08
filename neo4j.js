@@ -1,3 +1,4 @@
+"use strict";
 //
 // Castellon.CH (c)
 // Author: Antonio Castellon - antonio@castellon.ch
