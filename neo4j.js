@@ -48,6 +48,9 @@ module.exports = function(config) {
 
 
     const neo4jIntsToStrings = (json) => {
+
+        if (json == null) return '';
+
         const pluckAndModify = (isMatch, transformValue) =>
             Object.entries(json)
                 .filter(isMatch)
@@ -55,7 +58,7 @@ module.exports = function(config) {
         return Object.assign(
             json,
             pluckAndModify(([, value]) => typeof value === 'object', neo4jIntsToStrings),
-            pluckAndModify(([, value]) => neo4j.isInt(value), value => value.toString()),
+            pluckAndModify(([, value]) => neo4j.isInt(value), value => value.toString())
         );
     };
 
