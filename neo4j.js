@@ -96,9 +96,7 @@ module.exports = function(config) {
                         toReturn.push(neo4jIntsToStrings(v._fields));
                         //toReturn.push(v._fields);
                     });
-
-                    resolve(toReturn.flat());
-
+                    resolve(toReturn);
                 })
                 .catch(function(error) {
                     console.log(error);
