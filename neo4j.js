@@ -93,16 +93,11 @@ module.exports = function(config) {
 
                     let toReturn = [];
                     result.records.forEach(v => {
-                        toReturn.push(neo4jIntsToStrings(v._fields[0]));
+                        toReturn.push(neo4jIntsToStrings(v._fields));
                         //toReturn.push(v._fields);
-                        if (v._fields.length > 1) {
-                            $log.warn('///////////////////////////////////////////////////////////////////////////');
-                            $log.warn(' VALUES MISSING ... please undo the selection of the [0] from fields!!!! ')
-                            $log.warn('///////////////////////////////////////////////////////////////////////////');
-                        }
                     });
 
-                    resolve(toReturn);
+                    resolve(toReturn.flat());
 
                 })
                 .catch(function(error) {
