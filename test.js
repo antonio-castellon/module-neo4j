@@ -108,7 +108,7 @@ async function testBatch() {
     console.log( ' - ------------------------------------------- -');
 
     //throws error
-    q.push( { cypher : '***MATCH (s:Person) WHERE s.name = "Alice" DELETE s' , parameters : {} })
+    q.push( { cypher : 'MATCH (s:Person) WHERE s.name = "Alice" DELETE s' , parameters : {} })
     console.log( ' ... BATCHES (with ERROR) executed successfully = ' + await db.executeBatch(q))
 
 
