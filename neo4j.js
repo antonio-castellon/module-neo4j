@@ -58,7 +58,8 @@ module.exports = function(config) {
         return Object.assign(
             json,
             pluckAndModify(([, value]) => typeof value === 'object', neo4jIntsToStrings),
-            pluckAndModify(([, value]) => neo4j.isInt(value), value => value.toString())
+            pluckAndModify(([, value]) => neo4j.isInt(value), value => parseInt(value.toString())),
+            pluckAndModify(([, value]) => /^\d+\.\d+$/.test(value), value => parseFloat(value))
         );
     };
 
