@@ -23,7 +23,23 @@ const stream = neo.executeAsStream(cypher, params);
 ```
 
 ## API
-- getConnection, execute, executeAsPromise, executeAsStream, executeBatch
+
+### getConnection(): Driver
+Returns a new driver connection (for advanced reuse).
+
+### execute(cypher, parameters, [options]): Promise<array>
+Executes and returns transformed results (neo4j ints -> JS numbers/strings, nested objects recursed).
+
+- options: { conn, session, close: bool }
+
+### executeAsPromise(cypher, parameters, [options]): Promise
+Similar, returns the raw records array after transform.
+
+### executeAsStream(cypher, parameters, [options]): Readable
+For large result sets.
+
+### executeBatch(queries: Array<{cypher, parameters}>, [options]): Promise<boolean>
+Transaction batch. Note: current impl resolves after commit subscribe.
 
 ## License
 

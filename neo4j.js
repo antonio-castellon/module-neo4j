@@ -8,11 +8,16 @@
 
 const neo4j = require('neo4j-driver');
 
+/**
+ * Neo4j driver wrapper.
+ * @param {object} config
+ */
 module.exports = function(config) {
 
   const model = {};
 
-  function getConnection() {
+  function getConnection()
+  {
     return neo4j.driver(
       config.NEO4J_URL,
       neo4j.auth.basic(config.NEO4J_USER, config.NEO4J_PASSWORD),
@@ -41,11 +46,17 @@ module.exports = function(config) {
   };
 
   function getConnAndSession(options) {
-    const conn = (options != null && options.conn) ? options.conn : getConnection();
-    const session = (options != null && options.session) ? options.session : conn.session();
+    const conn = (options != null && options.conn)? options.conn : getConnection();
+    const session = (options != null && options.session)? options.session : conn.session();
     return { conn, session };
   }
 
+  /**
+   * Execute and return transformed results (ints to primitives).
+   * @param {string} cypher
+   * @param {object} parameters
+   * @param {object} [options] - {conn, session, close}
+   */
   function execute(cypher, parameters, options){
     const { conn, session } = getConnAndSession(options);
     return new Promise((resolve, reject) => {
@@ -57,27 +68,49 @@ module.exports = function(config) {
           });
           resolve(toReturn);
         })
-        .catch(error => { console.log(error); reject(error); })
-        .then(() => { if (!options || options.close) session.close(); })
-        .then(() => { if (!options || options.close) conn.close(); });
+        .catch(function(error) {
+          console.log(error);
+          reject(error);
+        })
+        .then(() =>{
+          if (options == null || options.close) session.close();
+        })
+        .then(() => {
+          if (options == null || options.close) conn.close();
+        });
     });
   }
 
+  /**
+   * @param {string} cypher
+   * @param {object} parameters
+   * @param {object} [options]
+   */
   async function executeAsPromise(cypher, parameters, options){
     const { conn, session } = getConnAndSession(options);
     return new Promise((resolve, reject) => {
       session.run(cypher, parameters)
         .then( result => {
-          // transform records
           const transformed = result.records.map(r => neo4jIntsToStrings(r._fields));
           resolve(transformed);
         })
-        .catch(error => { console.log(error); reject(error); })
-        .then(() => { if (!options || options.close) session.close(); })
-        .then(() => { if (!options || options.close) conn.close(); });
+        .catch(function(error) {
+          console.log(error);
+          reject(error);
+        })
+        .then(() =>{
+          if (options == null || options.close) session.close();
+        })
+        .then(() => {
+          if (options == null || options.close) conn.close();
+        });
     });
   }
 
+  /**
+   * Stream results.
+   * @returns {Readable}
+   */
   function executeAsStream(cypher, parameters, options){
     const Stream = require('stream');
     const readableStream = new Stream.Readable();
@@ -90,14 +123,21 @@ module.exports = function(config) {
           readableStream.push(JSON.stringify(neo4jIntsToStrings(record)));
         },
         onCompleted: function() {
-          if (!options || options.close) session.close();
-          if (!options || options.close) conn.close();
+          if (options == null || options.close) session.close();
+          if (options == null || options.close) conn.close();
         },
-        onError: function(error) { console.log(error); }
+        onError: function(error) {
+          console.log(error);
+        }
       });
     return readableStream;
   }
 
+  /**
+   * Batch execute.
+   * @param {Array<{cypher:string, parameters:object}>} queries
+   * @param {object} [options]
+   */
   async function executeBatch(queries, options) {
     const {conn, session} = getConnAndSession( options );
     let tx = session.beginTransaction();
@@ -105,7 +145,7 @@ module.exports = function(config) {
     return new Promise( (resolve, reject) => {
       for (let index = 0; index < queries.length; index++) {
         tx.run( queries[index].cypher, queries[index].parameters )
-          .catch( e => { throw 'Problem in QUERY [' + index + '] -> ' + e; } );
+          .catch( e => { throw 'Problem in QUERY [' + index + '] -> ' + e; });
       }
       tx.commit()
         .subscribe( {
