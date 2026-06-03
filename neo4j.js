@@ -9,13 +9,29 @@
 const neo4j = require('neo4j-driver');
 
 /**
- * Neo4j driver wrapper.
+ * Neo4j driver wrapper factory.
+ *
+ * Provides a simplified interface over the official neo4j-driver (v5+).
+ * Handles connection, session management, result transformation (Neo4j integers to JS primitives),
+ * and common execution patterns (promise, stream, batch).
+ *
  * @param {object} config
+ * @param {string} config.NEO4J_URL - e.g. 'bolt://127.0.0.1:7687'
+ * @param {string} config.NEO4J_USER
+ * @param {string} config.NEO4J_PASSWORD
+ * @param {boolean} [config.TRACES]
+ * @returns {{getConnection: Function, execute: Function, executeAsPromise: Function, executeAsStream: Function, executeBatch: Function}}
  */
 module.exports = function(config) {
 
   const model = {};
 
+  /**
+   * Returns a new driver instance (for advanced reuse of connections/sessions).
+   * Caller is responsible for closing.
+   *
+   * @returns {neo4j.Driver}
+   */
   function getConnection()
   {
     return neo4j.driver(
@@ -31,6 +47,11 @@ module.exports = function(config) {
   model.executeAsStream = executeAsStream;
   model.executeBatch = executeBatch;
 
+  /**
+   * Recursively transforms Neo4j Integer objects and some numeric strings into native JS numbers/strings.
+   * Used internally for all result transformation.
+   * @private
+   */
   const neo4jIntsToStrings = (json) => {
     if (json == null) return '';
     const pluckAndModify = (isMatch, transformValue) =>
@@ -45,6 +66,13 @@ module.exports = function(config) {
     );
   };
 
+  /**
+   * Internal helper to obtain (or reuse) a driver connection and session.
+   * @private
+   * @param {object} [options]
+   * @param {neo4j.Driver} [options.conn]
+   * @param {neo4j.Session} [options.session]
+   */
   function getConnAndSession(options) {
     const conn = (options != null && options.conn)? options.conn : getConnection();
     const session = (options != null && options.session)? options.session : conn.session();
@@ -52,10 +80,13 @@ module.exports = function(config) {
   }
 
   /**
-   * Execute and return transformed results (ints to primitives).
+   * Execute a Cypher query and return transformed results.
+   * Neo4j integers are converted to JS numbers/strings (recursively).
+   *
    * @param {string} cypher
    * @param {object} parameters
-   * @param {object} [options] - {conn, session, close}
+   * @param {object} [options] - {conn, session, close: boolean}
+   * @returns {Promise<Array>} array of transformed record fields
    */
   function execute(cypher, parameters, options){
     const { conn, session } = getConnAndSession(options);
@@ -82,9 +113,12 @@ module.exports = function(config) {
   }
 
   /**
+   * Async version of execute (same transformation).
+   *
    * @param {string} cypher
    * @param {object} parameters
    * @param {object} [options]
+   * @returns {Promise<Array>}
    */
   async function executeAsPromise(cypher, parameters, options){
     const { conn, session } = getConnAndSession(options);
@@ -108,7 +142,12 @@ module.exports = function(config) {
   }
 
   /**
-   * Stream results.
+   * Stream results as a Readable stream (each record JSON stringified after transform).
+   * Useful for very large result sets.
+   *
+   * @param {string} cypher
+   * @param {object} parameters
+   * @param {object} [options]
    * @returns {Readable}
    */
   function executeAsStream(cypher, parameters, options){
@@ -134,9 +173,12 @@ module.exports = function(config) {
   }
 
   /**
-   * Batch execute.
+   * Execute multiple queries inside a single transaction (batch).
+   * Note: current implementation resolves after commit subscription.
+   *
    * @param {Array<{cypher:string, parameters:object}>} queries
    * @param {object} [options]
+   * @returns {Promise<boolean>} true on success
    */
   async function executeBatch(queries, options) {
     const {conn, session} = getConnAndSession( options );
