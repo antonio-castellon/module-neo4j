@@ -27,5 +27,12 @@
   "homepage": "https://github.com/antonio-castellon/module-neo4j#readme",
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "files": [
+    "neo4j.js",
+    "README.md",
+    "LICENSE",
+    "config.neo4j.template.js",
+    "test.js"
+  ]
 }
